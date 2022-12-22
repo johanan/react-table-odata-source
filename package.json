@@ -1,0 +1,43 @@
+{
+  "name": "react-table-odata-source",
+  "version": "1.0.0",
+  "description": "React Hook to translate a React Table into OData queries.",
+  "type": "module",
+  "module": "index.ts",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johanan/react-table-odata-source.git"
+  },
+  "author": "Joshua Johanan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/johanan/react-table-odata-source/issues"
+  },
+  "homepage": "https://github.com/johanan/react-table-odata-source#readme",
+  "devDependencies": {
+    "@testing-library/react": "^12.1.4",
+    "@types/jest": "^27.4.1",
+    "@typescript-eslint/eslint-plugin": "^5.18.0",
+    "@typescript-eslint/parser": "^5.18.0",
+    "babel-jest": "^27.5.1",
+    "jest": "^27.5.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "rollup": "^3.7.5",
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^4.20.4",
+    "@tanstack/react-table": "^8.7.4",
+    "functional-object-array-merge": "^1.0.4",
+    "odata-metadata-processor": "^1.2.1",
+    "odata-query": "^7.0.3",
+    "ramda": "^0.28.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  }
+}

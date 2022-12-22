@@ -1,0 +1,12 @@
+{
+    "collectCoverage": true,
+    "testRegex": "((\\.|/*.)(spec|test))\\.(js|jsx|tsx)?$",
+    "reporters": [ "default" ],
+    "testEnvironment" : "jsdom",
+    "modulePaths": [
+        "<rootDir>/src/"
+      ],
+    "moduleNameMapper": {
+        "react-table-provider": "<rootDir>/src/index.ts"
+      }
+}
