@@ -6,7 +6,13 @@
     "modulePaths": [
         "<rootDir>/src/"
       ],
+    "transform": {
+      "^.+\\.(ts|js|tsx|jsx)$": "@swc/jest"
+    },
+    "transformIgnorePatterns" : [
+      "node_modules/(?!(react-table-provider))"
+    ],
     "moduleNameMapper": {
-        "react-table-provider": "<rootDir>/src/index.ts"
+        "react-table-odata-source": "<rootDir>/src/index.ts"
       }
 }

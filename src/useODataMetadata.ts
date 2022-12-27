@@ -1,28 +1,19 @@
-import { isNil } from 'ramda';
+import { isNil, isEmpty, append } from 'ramda';
 import { ODataMetadata } from "odata-metadata-processor";
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 
-export interface useODataMetadataOptions {
+export interface UseODataMetadataOptions {
     metadataUrl?: string,
     parseFn: (metadata: string) => ODataMetadata,
-    queryFn?: (url: string) => Promise<string>,
-    queryKey?: string[],
-    options?: Omit<UseQueryOptions<ODataMetadata, unknown, ODataMetadata, string[]>, 'queryKey' | 'queryFn'>
+    fetchFn: (url: string) => Promise<string>,
+    queryKey: string[],
+    options: Omit<UseQueryOptions<ODataMetadata, unknown, ODataMetadata, string[]>, 'queryKey' | 'queryFn'>
 }
 
-const useODataMetadata = ({metadataUrl,
-    parseFn,
-    queryFn = (url) => fetch(url).then<string, string>(r => r.text()),
-    queryKey = ['ODATA', 'METADATA', metadataUrl ?? ''],
-    options = {
-        suspense: true,
-        staleTime: 600000,
-    }
-} : useODataMetadataOptions) => useQuery(queryKey, () => queryFn(metadataUrl ?? '').then(parseFn), {
+export const useODataMetadata = ({metadataUrl, parseFn, fetchFn, queryKey, options,} : UseODataMetadataOptions) => 
+    useQuery(append(metadataUrl ?? '', queryKey), () => fetchFn(metadataUrl ?? '').then(parseFn), {
         ...options,
-        enabled: !isNil(metadataUrl)
+        enabled: !isEmpty(metadataUrl) && !isNil(metadataUrl)
     });
-
-export const useMetadataQuery = (options: useODataMetadataOptions) => (metadataUrl?: string) => useODataMetadata({ ...options, metadataUrl})
 
 export default useODataMetadata;
