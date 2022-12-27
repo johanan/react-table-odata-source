@@ -18,4 +18,4 @@ const defaultOptions = {
     }
 }
 
-export const useMetadataQuery = (options: PartialMetadataOptions) => (metadataUrl?: string) => useODataMetadata({ ...defaultOptions, ...options, metadataUrl})
+export const bindMetadataQuery = (options: PartialMetadataOptions) => (metadataUrl?: string) => useODataMetadata({ ...defaultOptions, ...options, metadataUrl})

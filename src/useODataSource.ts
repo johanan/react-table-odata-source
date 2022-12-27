@@ -5,7 +5,7 @@ import { ODataServiceDocument } from '../types';
 import { buildTypeRoot, ODataMetadata, ProcessedEntityType, ProcessedProperty } from 'odata-metadata-processor';
 import { ColumnDef, TableState, ColumnFilter } from '@tanstack/react-table';
 import { defaultTableState } from './utils';
-import buildQuery, { Filter, Expand } from 'odata-query';
+import buildQuery, { Filter } from 'odata-query';
 import { idMerge } from 'functional-object-array-merge';
 import { buildColumns, buildExpand, buildHidden, buildPaging, buildSelect, buildSort } from './oDataFunctions';
 
@@ -16,7 +16,7 @@ export interface UseODataSourceOptions {
     includeNavigation?: boolean,
     selectAll?: boolean,
     initialState?: TableState,
-    filterMapFn: (filter: ColumnFilter) => Filter[],
+    filterMapFn: (filter: ColumnFilter) => Filter | undefined,
     fetchFn?: <T>(url: string) => Promise<T>,
     queryOptions?: Omit<UseQueryOptions<any, unknown, any, any>, 'queryKey' | 'queryFn' | 'initialData'> & {
         initialData?: () => undefined;
@@ -109,7 +109,7 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
 		discoveryKey,
 		() => fetchFn(`${baseAddress}?$top=0`),
 		{
-            ...queryOptions,
+            //...queryOptions,
 			enabled: isNil(validMetadataUrl),
 			onSuccess: (data) => {
 				if (validMetadataUrl !== data['@odata.context']) {
@@ -173,8 +173,8 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
     const isLoading = metadataQuery.isLoading || discovery.isLoading || countQuery.isLoading || query.isLoading;
     const isFetching = metadataQuery.isFetching || discovery.isFetching || countQuery.isFetching || query.isFetching;
 
-    const onStateChange = React.useCallback(s => setTableState(s), []);
-    const onColumnFiltersChange = React.useCallback(s => setColumnFilters(s), []);
+    const onStateChange = setTableState;
+    const onColumnFiltersChange = setColumnFilters;
 
     return {
         data: isNil(query.data) ? [] : query.data!.value,

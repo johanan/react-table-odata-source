@@ -44,4 +44,4 @@ export const columnFn : (p: ProcessedProperty) => ColumnDef<any> = (p) => ({
     isCollection: p.isCollection,
 });
 
-export const simpleFilterFn = (filter: ColumnFilter) => path(['value', 1])(filter);
+export const simpleFilterFn = (filter: ColumnFilter) => path<string>(['value', 1])(filter);

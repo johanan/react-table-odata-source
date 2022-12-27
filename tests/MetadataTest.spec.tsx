@@ -2,13 +2,13 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import axios from 'axios';
 var MockAdapter = require("axios-mock-adapter");
-import { useMetadataQuery } from '../src';
+import { bindMetadataQuery } from '../src';
 import { AppProvider } from './utils';
 
 const parseFn = (s) => ({ dataServices: { schema: [] } })
 
 const TestComp = ({ metadataUrl, fetchFn, parseFn }) => {
-    const query = useMetadataQuery({ parseFn, fetchFn })(metadataUrl);
+    const query = bindMetadataQuery({ parseFn, fetchFn })(metadataUrl);
     return (<div>Rendered</div>);
 }
 
