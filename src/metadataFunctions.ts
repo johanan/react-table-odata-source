@@ -1,13 +1,7 @@
-import { ODataMetadata } from 'odata-metadata-processor';
-import { useODataMetadata } from './useODataMetadata';
-import { UseQueryOptions } from "@tanstack/react-query";
+import { useODataMetadata, UseODataMetadataOptions } from './useODataMetadata';
 
-export interface PartialMetadataOptions {
-    parseFn: (metadata: string) => ODataMetadata,
-    fetchFn?: (url: string) => Promise<string>,
-    queryKey?: string[],
-    options?: Omit<UseQueryOptions<ODataMetadata, unknown, ODataMetadata, string[]>, 'queryKey' | 'queryFn'>
-}
+export type RequiredParseFn = Pick<UseODataMetadataOptions, "parseFn"> ;
+export type OptionalOptions = Partial<Pick<UseODataMetadataOptions, "fetchFn" | "queryKey" | "options">> ;
 
 const defaultOptions = {
     fetchFn: (url) => fetch(url).then<string, string>(r => r.text()),
@@ -18,4 +12,4 @@ const defaultOptions = {
     }
 }
 
-export const bindMetadataQuery = (options: PartialMetadataOptions) => (metadataUrl?: string) => useODataMetadata({ ...defaultOptions, ...options, metadataUrl})
+export const bindMetadataQuery = (options: RequiredParseFn & OptionalOptions) => (metadataUrl?: string) => useODataMetadata({ ...defaultOptions, ...options, metadataUrl})

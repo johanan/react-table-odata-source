@@ -4,10 +4,9 @@ import { useQuery, UseQueryResult, UseQueryOptions } from '@tanstack/react-query
 import { ODataServiceDocument } from '../types';
 import { buildTypeRoot, ODataMetadata, ProcessedEntityType, ProcessedProperty } from 'odata-metadata-processor';
 import { ColumnDef, TableState, ColumnFilter } from '@tanstack/react-table';
-import { defaultTableState } from './utils';
 import buildQuery, { Filter } from 'odata-query';
 import { idMerge } from 'functional-object-array-merge';
-import { buildColumns, buildExpand, buildHidden, buildPaging, buildSelect, buildSort } from './oDataFunctions';
+import { buildColumns, buildExpand, buildHidden, buildPaging, buildSelect, buildSort, defaultTableState } from './oDataFunctions';
 
 export interface UseODataSourceOptions {
     baseAddress: string,

@@ -1,7 +1,8 @@
 import { isNil, map, flatten, concat, isEmpty, mergeAll, prop, without, toPairs, compose, reject, reduce, mergeDeepLeft, filter, includes } from 'ramda';
 import { ProcessedEntityType, ProcessedProperty } from 'odata-metadata-processor';
-import { ColumnDef, ColumnSort, PaginationState, SortingState, VisibilityState } from '@tanstack/react-table';
+import { ColumnDef, ColumnSort, PaginationState, SortingState, TableState, VisibilityState } from '@tanstack/react-table';
 import { replaceDot } from './utils';
+import useODataSource, { UseODataSourceOptions } from './useODataSource';
 
 export const getAllProps : (props) => ProcessedEntityType[] = (props: ProcessedEntityType) => {
 	// get current
@@ -53,4 +54,42 @@ export const buildSort = (sorting: SortingState) => ({ orderBy: map(orderByMap, 
 export const buildHidden :(visibility: VisibilityState) => string[] = (visibility: VisibilityState) => compose(map(prop(0)), reject(prop(1)), toPairs)(visibility)
 export const buildSelect = (hidden: string[], typeRoot: ProcessedEntityType) => ({ select: without(hidden, map(prop('name'), getAllProps(typeRoot))) });
 
-const orderByMap = (s: ColumnSort) => `${replaceDot(s.id)} ${s.desc ? 'desc' : 'asc'}`;
+export const orderByMap = (s: ColumnSort) => `${replaceDot(s.id)} ${s.desc ? 'desc' : 'asc'}`;
+
+export const defaultTableState : TableState = {
+	rowSelection: {},
+	expanded: {},
+	grouping: [],
+	sorting: [],
+	pagination : { pageIndex: 0, pageSize: 10 },
+	columnFilters: [],
+	globalFilter: {},
+	columnOrder: [],
+	columnPinning: {},
+	columnSizing: {},
+	columnVisibility: {},
+	columnSizingInfo: {
+		startOffset: null,
+		startSize: null,
+		deltaOffset: null,
+		deltaPercentage: null,
+		isResizingColumn: false,
+		columnSizingStart: []
+	}
+}
+
+const defaultODataOptions = {
+    fetchFn: (url: string) => fetch(url).then(r => r.json()),
+    queryKey: ['ODATA'],
+    queryOptions: {
+		keepPreviousData: true,
+		staleTime: 300000,
+		suspense: true,
+	},
+    initialState: defaultTableState,
+};
+
+export type BindFunctions = Pick<UseODataSourceOptions, "filterMapFn" | "fetchFn" | "queryKey" | "columnFn" | "queryOptions">;
+//export type ExecuteOptions = Pick<UseODataSourceOptions, "baseAddress" | "entityType" | "metadataUrl" | "includeNavigation" | "selectAll" | "initialState" | "">
+
+//export const bindODataSource = (bound: BindFunctions) => useODataSource({ ...defaultODataOptions, ...bound, })
