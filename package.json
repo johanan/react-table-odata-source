@@ -1,6 +1,6 @@
 {
   "name": "react-table-odata-source",
-  "version": "1.0.0",
+  "version": "1.0.0-semantic-release",
   "description": "React Hook to translate a React Table into OData queries.",
   "type": "module",
   "module": "dist/index.js",
@@ -31,6 +31,11 @@
       "next"
     ]
   },
+  "keywords": [
+    "odata",
+    "table",
+    "react-table"
+  ],
   "homepage": "https://github.com/johanan/react-table-odata-source#readme",
   "devDependencies": {
     "@rollup/plugin-typescript": "^10.0.1",
