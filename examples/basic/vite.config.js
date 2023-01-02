@@ -10,7 +10,7 @@ export default defineConfig({
   ],
   resolve: {
         alias: {
-          'react-table-odata-source': path.resolve(__dirname, '../../src/index.ts'),
+          'react-table-odata-source': path.resolve(__dirname, '../../dist/index.js'),
         },
       },
       build: {

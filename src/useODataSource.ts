@@ -6,7 +6,7 @@ import { buildTypeRoot, ODataMetadata, ProcessedEntityType, ProcessedProperty } 
 import { ColumnDef, TableState, ColumnFilter } from '@tanstack/react-table';
 import buildQuery, { Filter } from 'odata-query';
 import { idMerge } from 'functional-object-array-merge';
-import { buildColumns, buildExpand, buildHidden, buildPaging, buildSelect, buildSort, defaultTableState } from './oDataFunctions';
+import { buildColumns, buildExpand, buildHidden, buildPaging, buildSelect, buildSort, defaultTableState, getAllProps } from './oDataFunctions';
 
 export interface UseODataSourceOptions {
     baseAddress: string,
@@ -14,7 +14,7 @@ export interface UseODataSourceOptions {
     metadataUrl?: string,
     includeNavigation?: boolean,
     selectAll?: boolean,
-    initialState?: TableState,
+    initialState?: Partial<TableState>,
     filterMapFn: (filter: ColumnFilter) => Filter | undefined,
     fetchFn?: <T>(url: string) => Promise<T>,
     queryOptions?: Omit<UseQueryOptions<any, unknown, any, any>, 'queryKey' | 'queryFn' | 'initialData'> & {
@@ -57,13 +57,13 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
 		staleTime: 300000,
 		suspense: true,
 	},
-    initialState = defaultTableState,
+    initialState = {},
     columnFn,
     filterMapFn,
     customColumns = [],
     useMetadataQuery
 }: UseODataSourceOptions) => {
-    const [tableState, setTableState] = React.useState<TableState>(initialState);
+    const [tableState, setTableState] = React.useState<TableState>({...defaultTableState, ...initialState});
     const [columnFilters, setColumnFilters] = React.useState([]);
     const [total, setTotal] = React.useState(0);
 	const [pageCount, setPageCount] = React.useState(-1);
@@ -137,11 +137,14 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
     }, [countQuery.data?.['@odata.count']]);
 
     // memo the select
-    const select = React.useMemo(() => readyToQuery 
-    ? selectAll ? { } 
-    // ready to query and we are not selecting everyting
-        : buildSelect(buildHidden(tableState.columnVisibility), typeRoot!)
-    : {}, 
+    const select = React.useMemo(() => {
+        if (selectAll) return {};
+        if (!readyToQuery) return {};
+        // determine if we are selecting all
+        const allProps = getAllProps(typeRoot);
+        const selected = buildSelect(buildHidden(tableState.columnVisibility), allProps); 
+        return selected.length !== allProps.length ? { select: selected } : {};
+    }, 
     [selectAll, tableState.columnVisibility, readyToQuery])
 
         

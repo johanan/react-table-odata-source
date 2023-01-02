@@ -15,7 +15,8 @@ export const Table = () => {
                 <th key={header.id} colSpan={header.colSpan}>
                   {header.isPlaceholder ? null : (
                     <>
-                    <div
+                    <button
+                      aria-label={`${header.column.columnDef.id}-sort`}
                       {...{
                         className: header.column.getCanSort()
                           ? "cursor-pointer select-none"
@@ -31,7 +32,7 @@ export const Table = () => {
                         asc: " 🔼",
                         desc: " 🔽"
                       }[header.column.getIsSorted() as string] ?? null}
-                    </div>
+                    </button>
                     {header.column.getCanFilter() ? (
                           <div>
                             {flexRender(header.column.columnDef.filter, header)}

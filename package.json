@@ -3,10 +3,19 @@
   "version": "1.0.0",
   "description": "React Hook to translate a React Table into OData queries.",
   "type": "module",
-  "module": "index.ts",
+  "module": "dist/index.js",
   "scripts": {
+    "build": "rollup --config rollup.config.js",
     "test": "jest --config jest.config.json"
   },
+  "files":[
+    "dist",
+    "types",
+    "src",
+    "README.md",
+    "package.json",
+    "package-lock.json"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/johanan/react-table-odata-source.git"
@@ -16,10 +25,19 @@
   "bugs": {
     "url": "https://github.com/johanan/react-table-odata-source/issues"
   },
+  "release": {
+    "branches": [
+      "main",
+      "next"
+    ]
+  },
   "homepage": "https://github.com/johanan/react-table-odata-source#readme",
   "devDependencies": {
+    "@rollup/plugin-typescript": "^10.0.1",
     "@swc/jest": "^0.2.24",
+    "@testing-library/dom": "^8.19.1",
     "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.3",
     "@types/axios-mock-adapter": "^1.10.0",
     "@types/jest": "^29.2.4",
     "@types/ramda": "^0.28.20",
@@ -32,7 +50,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-table-provider": "^2.1.1",
-    "rollup": "^3.7.5",
+    "rollup": "^3.9.1",
     "ts-odatajs": "^4.0.9",
     "typescript": "^4.6.3"
   },

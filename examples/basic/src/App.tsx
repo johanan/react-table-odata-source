@@ -6,9 +6,8 @@ import { useODataSource, bindMetadataQuery, columnFn, simpleFilterFn } from '../
 import { ReactTableProvider } from "react-table-provider";
 import { getCoreRowModel
     } from "@tanstack/react-table";
-import Table, { Debug } from './Table';
-import Pagination from './Pagination';
-import ColumnHiding from './ColumnHiding';
+import { Debug } from './Debug';
+import { Table, Pagination, ColumnHiding } from '../../../tests/TanTable';
 import { ODataContainsFilter } from './Filters';
 
 const parseFn = (xml: string) => metadataParser(null, xml) as ODataMetadata;
