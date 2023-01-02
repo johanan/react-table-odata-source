@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { append, isNil, map, concat, isEmpty, mergeAll, prop, reduce, mergeDeepLeft } from 'ramda';
 import { useQuery, UseQueryResult, UseQueryOptions } from '@tanstack/react-query';
-import { ODataServiceDocument } from '../types';
+import { ODataServiceDocument } from './index.d';
 import { buildTypeRoot, ODataMetadata, ProcessedEntityType, ProcessedProperty } from 'odata-metadata-processor';
 import { ColumnDef, TableState, ColumnFilter } from '@tanstack/react-table';
 import buildQuery, { Filter } from 'odata-query';
