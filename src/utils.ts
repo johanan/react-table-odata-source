@@ -1,4 +1,4 @@
-import { ColumnDef, TableOptions, TableState, ColumnFilter, getCoreRowModel } from "@tanstack/react-table";
+import { ColumnDef, TableOptions, ColumnFilter, getCoreRowModel } from "@tanstack/react-table";
 import { ProcessedProperty } from "odata-metadata-processor";
 import { init, join, path, isNil } from 'ramda';
 

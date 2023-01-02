@@ -26,7 +26,7 @@ export interface UseODataSourceOptions {
     useMetadataQuery: (url?: string) => UseQueryResult<ODataMetadata, unknown>
 }
 
-interface ODataSource {
+export interface ODataSource {
     data: any[],
     state: Partial<TableState>,
     setState: any,

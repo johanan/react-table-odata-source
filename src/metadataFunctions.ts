@@ -4,7 +4,7 @@ export type RequiredParseFn = Pick<UseODataMetadataOptions, "parseFn"> ;
 export type OptionalOptions = Partial<Pick<UseODataMetadataOptions, "fetchFn" | "queryKey" | "options">> ;
 
 const defaultOptions = {
-    fetchFn: (url) => fetch(url).then<string, string>(r => r.text()),
+    fetchFn: (url: string) => fetch(url).then<string, string>(r => r.text()),
     queryKey: ['ODATA', 'METADATA'],
     options: {
         suspense: true,

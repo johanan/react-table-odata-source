@@ -1,9 +1,9 @@
-import { isNil, map, flatten, concat, isEmpty, mergeAll, prop, without, toPairs, compose, reject, reduce, mergeDeepLeft, filter, includes, difference } from 'ramda';
+import { isNil, map, flatten, concat, isEmpty, mergeAll, prop, without, toPairs, compose, reject, reduce, mergeDeepLeft, filter, includes } from 'ramda';
 import { ProcessedEntityType, ProcessedProperty } from 'odata-metadata-processor';
 import { ColumnDef, ColumnSort, PaginationState, SortingState, TableState, VisibilityState } from '@tanstack/react-table';
 import { replaceDot } from './utils';
 
-export const getAllProps : (props) => ProcessedEntityType[] = (props: ProcessedEntityType) => {
+export const getAllProps : (props: ProcessedEntityType) => ProcessedProperty[] = (props) => {
 	// get current
 	const curr = props.property;
 	// map over them
@@ -11,7 +11,7 @@ export const getAllProps : (props) => ProcessedEntityType[] = (props: ProcessedE
 	return concat(curr, recursed);
 };
 
-export const buildColumns = (followNav : boolean, columnFn: (ProcessedEntityType) => ColumnDef<any>) => (entity: ProcessedEntityType) => {
+export const buildColumns = (followNav : boolean, columnFn: (entity: ProcessedProperty) => ColumnDef<any>) => (entity: ProcessedEntityType) => {
 	const myProps = map(columnFn, getAllProps(entity));
 	const navProps : ColumnDef<any>[] = followNav ? flatten(map(buildColumns(followNav, columnFn), entity.navigationProperty)) : [];
 	return concat(myProps, navProps);

@@ -5,7 +5,8 @@
   "type": "module",
   "module": "dist/index.js",
   "scripts": {
-    "build": "rollup --config rollup.config.js",
+    "build": "rollup --config rollup.config.js && npm run build:types",
+    "build:types": "tsc --project ./tsconfig.types.json",
     "test": "jest --config jest.config.json"
   },
   "files":[
