@@ -4,6 +4,7 @@
   "description": "React Hook to translate a React Table into OData queries.",
   "type": "module",
   "module": "dist/index.js",
+  "types": "types/index.d.ts",
   "scripts": {
     "build": "rollup --config rollup.config.js && npm run build:types",
     "build:types": "tsc --project ./tsconfig.types.json",
