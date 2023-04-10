@@ -10,23 +10,24 @@ export const Pagination = () => {
     previousPage,
     setPageIndex,
     setPageSize,
-    nextPage
+    nextPage,
+    options: { meta }
   } = useReactTableContext();
 
   return (
     <div className="pagination">
-      <button onClick={() => setPageIndex(0)} disabled={!getCanPreviousPage}>
+      <button onClick={() => setPageIndex(0)} disabled={!getCanPreviousPage()}>
         {"<<"}
       </button>{" "}
       <button onClick={() => previousPage()} disabled={!getCanPreviousPage()}>
         {"<"}
       </button>{" "}
-      <button onClick={() => nextPage()} disabled={!getCanNextPage}>
+      <button onClick={() => nextPage()} disabled={!getCanNextPage()}>
         {">"}
       </button>{" "}
       <button
         onClick={() => setPageIndex(getPageCount() - 1)}
-        disabled={!getCanNextPage}
+        disabled={!getCanNextPage()}
       >
         {">>"}
       </button>{" "}
@@ -59,7 +60,7 @@ export const Pagination = () => {
             Show {pageSize}
           </option>
         ))}
-      </select>
+      </select> | Total {meta?.total}
     </div>
   );
 };

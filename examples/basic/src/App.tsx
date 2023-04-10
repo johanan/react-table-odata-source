@@ -40,8 +40,8 @@ const App = () => {
             columns={odata.columns}
             state={odata.state}
             onStateChange={odata.onStateChange}
-            onColumnFiltersChange={odata.onColumnFiltersChange}
             pageCount={odata.pageCount}
+            meta={odata.meta}
             getCoreRowModel={getCoreRowModel()}
             autoResetAll={false}
             manualSorting
@@ -52,10 +52,10 @@ const App = () => {
             <ColumnHiding />
             <Table />
             <Pagination />
-            { odata.isFetching ? 'Loading...' : null }
+            { odata.meta.isFetching ? 'Loading...' : null }
             <Debug />
         </ReactTableProvider>
-        <pre>{odata.queryString}</pre>
+        <pre>{odata.meta.queryString}</pre>
     </div>);
 }
 
