@@ -3,7 +3,13 @@
   "version": "1.0.0-semantic-release",
   "description": "React Hook to translate a React Table into OData queries.",
   "type": "module",
-  "module": "dist/index.js",
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "types": "types/index.d.ts",
   "scripts": {
     "build": "rollup --config rollup.config.js && npm run build:types",

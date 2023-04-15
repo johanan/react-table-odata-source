@@ -27,6 +27,7 @@ export interface UseODataSourceOptions {
 }
 
 export interface ODataSourceMeta {
+    baseAddress: string;
     metadataQuery: UseQueryResult<ODataMetadata>;
     isLoading: boolean,
     isFetching: boolean,
@@ -186,6 +187,7 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
         columns,
         pageCount,
         meta: {
+            baseAddress,
 			metadataQuery,
 			isLoading,
 			isFetching,
