@@ -34,7 +34,8 @@ export interface ODataSourceMeta {
     total: number,
     queryString: string
     boundQueryKey: string[],
-    typeRoot?: ProcessedEntityType
+    typeRoot?: ProcessedEntityType,
+    defaultOrder: string[]
 }
 
 export interface ODataSource {
@@ -70,6 +71,7 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
     const [total, setTotal] = React.useState(0);
 	const [pageCount, setPageCount] = React.useState(-1);
     const [columns, setColumns] = React.useState<ColumnDef<any>[]>([]);
+    const [defaultOrder, setDefaultOrder] = React.useState<string[]>([]);
     const [validMetadataUrl, setValidMetadataUrl] = React.useState(metadataUrl);
     const [typeRoot, setTypeRoot] = React.useState<ProcessedEntityType>();
 
@@ -91,7 +93,7 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
 
     // check if we can set the type root
     React.useEffect(() => {
-        if (!isNil(metadataQuery.data)) {
+        if (!isNil(metadataQuery.data && isNil(typeRoot))) {
             const root = buildTypeRoot(metadataQuery.data!)(entityType);
 			setTypeRoot(root);
             const builtColumns = buildColumns(includeNavigation, columnFn)(root);
@@ -100,9 +102,9 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
             // @ts-ignore
             setColumns(combined);
             // idMerge changes the default order of columns
-            setTableState(st => ({ ...st, columnOrder: map<ColumnDef<any>, any>(prop('id'), builtColumns )}));
+            setDefaultOrder(map<ColumnDef<any>, any>(prop('id'), builtColumns ));
         }
-    }, [isNil(metadataQuery.data)]);
+    }, [metadataQuery.data]);
 
     //will only query when metadata url is not set and then will set metadata url
 	const discoveryKey = append('?$top=0', boundQueryKey);
@@ -195,6 +197,7 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
 			queryString,
 			boundQueryKey,
 			typeRoot,
+            defaultOrder,
 		},
     }
 }
