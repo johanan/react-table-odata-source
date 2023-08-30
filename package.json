@@ -51,7 +51,6 @@
     "@testing-library/dom": "^8.19.1",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
-    "@types/axios-mock-adapter": "^1.10.0",
     "@types/jest": "^29.2.4",
     "@types/ramda": "^0.28.20",
     "@typescript-eslint/eslint-plugin": "^5.18.0",
