@@ -12,7 +12,7 @@ import { ColumnHiding, Pagination, Table } from './TanTable';
 import { ReactTableProvider } from 'react-table-provider';
 import { getCoreRowModel } from '@tanstack/react-table';
 import { csdl, data, ODataDataType } from './csdl';
-import { ODataServiceDocument } from '../types';
+import { ODataServiceDocument } from '../src/index.d';
 
 const MockAdapter = require("axios-mock-adapter");
 
@@ -30,7 +30,6 @@ const ODataComp = ({ options } : { options: Omit<UseODataSourceOptions, "useMeta
         columns={odata.columns}
         state={odata.state}
         onStateChange={odata.onStateChange}
-        onColumnFiltersChange={odata.onColumnFiltersChange}
         pageCount={odata.pageCount}
         getCoreRowModel={getCoreRowModel()}
         autoResetAll={false}
@@ -41,7 +40,9 @@ const ODataComp = ({ options } : { options: Omit<UseODataSourceOptions, "useMeta
         <ColumnHiding />
         <Table />
         <Pagination />
-        <pre>{odata.queryString}</pre>
+        <pre>{odata.meta.queryString}</pre>
+        <span>{JSON.stringify(odata.state.columnOrder)}</span>
+        <pre>{JSON.stringify(odata.meta.defaultOrder)}</pre>
     </ReactTableProvider>);
 }
 
@@ -196,5 +197,32 @@ describe('OData Source', () => {
         await userEvent.click(screen.getByLabelText('Name-sort'));
         // this only appears after sorting
         await waitFor(() => expect(screen.getByText("Bulk size can of instant coffee")));
+    });
+
+    it('should not reset the column order', async () => {
+        var mock = new MockAdapter(axios);
+        mock.onGet('https://test.com/?metadata').replyOnce(200, csdl);
+        mock.onGet('https://test.com/Providers?$count=true&$top=0').replyOnce(200, { '@odata.count': data.value.length, value: [] });
+        mock.onGet('https://test.com/Providers?$expand=Categories,Supplier,ProductDetail&$top=10')
+            .replyOnce(200, over<ODataDataType, any>(valueLens, take(10), data));
+
+        render(<AppProvider><ODataComp options={{
+            metadataUrl: 'https://test.com/?metadata',
+            baseAddress: 'https://test.com/Providers',
+            entityType: 'ODataDemo.Product',
+            filterMapFn: simpleFilterFn,
+            columnFn,
+            fetchFn,
+            initialState: {
+                columnOrder: ["Description","ID"]
+            }
+        }} /></AppProvider>);
+
+        await waitFor(() => expect(screen.getAllByText('Description')));
+        await waitFor(() => expect(screen.getByText("Whole grain bread")));
+        // current order
+        screen.getByText(/"Description","ID"/);
+        //the default order
+        screen.getByText(/"ID","Name","Description"/);
     });
 })

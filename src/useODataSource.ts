@@ -26,22 +26,26 @@ export interface UseODataSourceOptions {
     useMetadataQuery: (url?: string) => UseQueryResult<ODataMetadata, unknown>
 }
 
-export interface ODataSource {
-    data: any[],
-    state: Partial<TableState>,
-    setState: any,
-    setFilters: any,
-    onStateChange: any,
-    onColumnFiltersChange: any,
-    columns: ColumnDef<any>[],
+export interface ODataSourceMeta {
+    baseAddress: string;
     metadataQuery: UseQueryResult<ODataMetadata>;
     isLoading: boolean,
     isFetching: boolean,
     total: number,
-    pageCount: number,
     queryString: string
     boundQueryKey: string[],
-    typeRoot?: ProcessedEntityType
+    typeRoot?: ProcessedEntityType,
+    defaultOrder: string[]
+}
+
+export interface ODataSource {
+    data: any[],
+    state: Partial<TableState>,
+    setState: any,
+    onStateChange: any,
+    columns: ColumnDef<any>[],
+    pageCount: number,
+    meta: ODataSourceMeta
 }
 
 const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
@@ -64,10 +68,10 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
     useMetadataQuery
 }: UseODataSourceOptions) => {
     const [tableState, setTableState] = React.useState<TableState>({...defaultTableState, ...initialState});
-    const [columnFilters, setColumnFilters] = React.useState([]);
     const [total, setTotal] = React.useState(0);
 	const [pageCount, setPageCount] = React.useState(-1);
     const [columns, setColumns] = React.useState<ColumnDef<any>[]>([]);
+    const [defaultOrder, setDefaultOrder] = React.useState<string[]>([]);
     const [validMetadataUrl, setValidMetadataUrl] = React.useState(metadataUrl);
     const [typeRoot, setTypeRoot] = React.useState<ProcessedEntityType>();
 
@@ -79,7 +83,7 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
     //will only query if metadata url is set
     const metadataQuery = useMetadataQuery(validMetadataUrl);
     // calculate filters up front
-    const filters = { filter: map(filterMapFn, columnFilters) };
+    const filters = { filter: map(filterMapFn, tableState.columnFilters) };
 
     // effects
     // updated page count when the page size changes
@@ -89,7 +93,7 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
 
     // check if we can set the type root
     React.useEffect(() => {
-        if (!isNil(metadataQuery.data)) {
+        if (!isNil(metadataQuery.data && isNil(typeRoot))) {
             const root = buildTypeRoot(metadataQuery.data!)(entityType);
 			setTypeRoot(root);
             const builtColumns = buildColumns(includeNavigation, columnFn)(root);
@@ -98,9 +102,9 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
             // @ts-ignore
             setColumns(combined);
             // idMerge changes the default order of columns
-            setTableState(st => ({ ...st, columnOrder: map<ColumnDef<any>, any>(prop('id'), builtColumns )}));
+            setDefaultOrder(map<ColumnDef<any>, any>(prop('id'), builtColumns ));
         }
-    }, [isNil(metadataQuery.data)]);
+    }, [metadataQuery.data]);
 
     //will only query when metadata url is not set and then will set metadata url
 	const discoveryKey = append('?$top=0', boundQueryKey);
@@ -176,24 +180,25 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
     const isFetching = metadataQuery.isFetching || discovery.isFetching || countQuery.isFetching || query.isFetching;
 
     const onStateChange = setTableState;
-    const onColumnFiltersChange = setColumnFilters;
 
     return {
         data: isNil(query.data) ? [] : query.data!.value,
-        state: {...tableState, columnFilters },
+        state: tableState,
         setState: setTableState,
-        setFilters: setColumnFilters,
         onStateChange,
-        onColumnFiltersChange,
         columns,
-        metadataQuery,
-        isLoading,
-        isFetching,
         pageCount,
-        total,
-        queryString,
-        boundQueryKey,
-        typeRoot
+        meta: {
+            baseAddress,
+			metadataQuery,
+			isLoading,
+			isFetching,
+			total,
+			queryString,
+			boundQueryKey,
+			typeRoot,
+            defaultOrder,
+		},
     }
 }
 
