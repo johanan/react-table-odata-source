@@ -31,7 +31,7 @@ export const useODataMetadata = ({metadataUrl, parseFn, fetchFn, queryKey, optio
     });
 
 export const useDiscoverMetadata = ({ baseAddress, fetchFn, queryKey, options } : UseDiscoverMetadataOptions) => { 
-    const discovery = useSuspenseQuery({ queryKey: append('?$top=0', queryKey), queryFn: () => requiredUrl(baseAddress).then(u => `${u}?$top=0`).then(fetchFn<ODataServiceDocument<any>>), 
+    const discovery = useSuspenseQuery({ queryKey: append('?$top=0', queryKey), queryFn: () => requiredUrl(baseAddress).then(u => `${u}?$top=0`).then<ODataServiceDocument<any>>(fetchFn), 
         ...options,});
     return discovery.data['@odata.context']
 }

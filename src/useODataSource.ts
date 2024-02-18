@@ -30,7 +30,7 @@ export interface ODataSourceMeta {
     queryString: string
     boundQueryKey: string[],
     typeRoot: ProcessedEntityType,
-    defaultOrder: string[]
+    defaultOrder: string[],
 }
 
 export interface ODataSource {
@@ -88,7 +88,7 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
     const countQuery = useSuspenseQuery<ODataServiceDocument<any>, unknown>({ queryKey: countKey, 
         queryFn: () => requiredUrl(baseAddress)
             .then(u => `${u}${buildQuery(mergeAll([filters, { count: true, top: 0 }]))}`)
-            .then(fetchFn<ODataServiceDocument<any>>),
+            .then<ODataServiceDocument<any>>(fetchFn),
 			...queryOptions,
 		});
 
@@ -121,7 +121,7 @@ const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
 		queryKey: odataKey,
         queryFn: () => requiredUrl(baseAddress)
             .then(u => `${u}${queryString}`) 
-            .then(fetchFn<ODataServiceDocument<any>>),
+            .then<ODataServiceDocument<any>>(fetchFn),
         ...queryOptions,
     });
 

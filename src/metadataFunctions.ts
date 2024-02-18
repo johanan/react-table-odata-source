@@ -1,4 +1,4 @@
-import { useODataMetadata, UseODataMetadataOptions, useDiscoverMetadata } from './useODataMetadata';
+import { useODataMetadata, UseODataMetadataOptions, useDiscoverMetadata, UseDiscoverMetadataOptions } from './useODataMetadata';
 import { jsonFetchFn, textFetchFn, defaultMetadataQueryKey } from './utils';
 
 export type RequiredParseFn = Pick<UseODataMetadataOptions, "parseFn"> ;
@@ -12,7 +12,7 @@ const defaultOptions = {
     }
 }
 
-export type OptionalDiscoverOptions = Partial<Pick<UseODataMetadataOptions, "fetchFn" | "queryKey" | "options">> ;
+export type OptionalDiscoverOptions = Partial<Pick<UseDiscoverMetadataOptions, "fetchFn" | "queryKey" | "options">> ;
 
 const defaultDiscoverOptions = {
     fetchFn: jsonFetchFn,
