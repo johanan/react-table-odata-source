@@ -13,7 +13,7 @@ ReactDOM.createRoot(rootElement!).render(
       <React.Suspense fallback={<div>Loading</div>} >
         <App />
         </React.Suspense>
-        <ReactQueryDevtools initialIsOpen={false} position='bottom-right'/>
+        <ReactQueryDevtools initialIsOpen={false} position='bottom'/>
     </QueryClientProvider>
   </React.StrictMode>
 );

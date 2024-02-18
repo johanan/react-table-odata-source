@@ -52,6 +52,9 @@ export const buildPaging = (state: PaginationState) => {
 
 export const buildSort = (sorting: SortingState) => ({ orderBy: map(orderByMap, sorting)});
 // compose causes really painful type problems
+// the composition turns the object into an array of key value pairs, where the prop is the key and the value is a boolean, so we reject based on 1 and select 0
+// think [ ["a", true], ["b", false], ["c", true] ] -> [ "b" ] 
+// remember that we want what is hidden, not what is visible
 // @ts-ignore
 export const buildHidden :(visibility: VisibilityState) => string[] = (visibility: VisibilityState) => compose(map(prop(0)), reject(prop(1)), toPairs)(visibility)
 export const buildSelect = (hidden: string[], allProps: ProcessedEntityType[]) => without(hidden, map(prop('name'), allProps));

@@ -1,19 +1,39 @@
-import { isNil, isEmpty, append } from 'ramda';
+import { append } from 'ramda';
 import { ODataMetadata } from "odata-metadata-processor";
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
+import { useSuspenseQuery, UseQueryOptions } from "@tanstack/react-query";
+import { ODataServiceDocument } from './index.d';
+import { requiredUrl } from './utils';
 
-export interface UseODataMetadataOptions {
-    metadataUrl?: string,
+export interface UseBaseOptions {
     parseFn: (metadata: string) => ODataMetadata,
-    fetchFn: (url: string) => Promise<string>,
     queryKey: string[],
     options: Omit<UseQueryOptions<ODataMetadata, unknown, ODataMetadata, string[]>, 'queryKey' | 'queryFn'>
 }
 
+export interface UseODataMetadataOptions extends UseBaseOptions {
+    metadataUrl: string,
+    fetchFn: (url: string) => Promise<string>,
+    parseFn: (metadata: string) => ODataMetadata,
+    queryKey: string[],
+    options: Omit<UseQueryOptions<ODataMetadata, unknown, ODataMetadata, string[]>, 'queryKey' | 'queryFn'>
+}
+
+export interface UseDiscoverMetadataOptions {
+    baseAddress: string,
+    fetchFn: <T>(url: string) => Promise<T>,
+    queryKey: string[],
+    options: Omit<UseQueryOptions<ODataServiceDocument<any>, unknown, ODataServiceDocument<any>, string[]>, 'queryKey' | 'queryFn'>
+}
+
 export const useODataMetadata = ({metadataUrl, parseFn, fetchFn, queryKey, options,} : UseODataMetadataOptions) => 
-    useQuery(append(metadataUrl ?? '', queryKey), () => fetchFn(metadataUrl ?? '').then(parseFn), {
+    useSuspenseQuery({ queryKey: append(metadataUrl, queryKey), queryFn: () => requiredUrl(metadataUrl).then(fetchFn).then(parseFn), 
         ...options,
-        enabled: !isEmpty(metadataUrl) && !isNil(metadataUrl)
     });
+
+export const useDiscoverMetadata = ({ baseAddress, fetchFn, queryKey, options } : UseDiscoverMetadataOptions) => { 
+    const discovery = useSuspenseQuery({ queryKey: append('?$top=0', queryKey), queryFn: () => requiredUrl(baseAddress).then(u => `${u}?$top=0`).then(fetchFn<ODataServiceDocument<any>>), 
+        ...options,});
+    return discovery.data['@odata.context']
+}
 
 export default useODataMetadata;
