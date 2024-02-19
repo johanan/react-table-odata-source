@@ -38,7 +38,6 @@ function DebouncedInput({
 export const ODataContainsFilter = ({ column }: {
     column: Column<any, unknown>
   }) => {
-    console.log(column)
     const { getFilterValue, setFilterValue, id} = column;
 	return <DebouncedInput
 		value={emptyArray(getFilterValue())[0] || ''}

@@ -1,203 +1,146 @@
-import * as React from 'react';
-import { append, isNil, map, concat, isEmpty, mergeAll, prop, reduce, mergeDeepLeft } from 'ramda';
-import { useQuery, UseQueryResult, UseQueryOptions } from '@tanstack/react-query';
+import React from 'react';
+import { append, map, concat, mergeAll, prop, reduce, mergeDeepLeft } from 'ramda';
+import { useSuspenseQuery, UseSuspenseQueryOptions } from '@tanstack/react-query';
 import { ODataServiceDocument } from './index.d';
 import { buildTypeRoot, ODataMetadata, ProcessedEntityType, ProcessedProperty } from 'odata-metadata-processor';
 import { ColumnDef, TableState, ColumnFilter } from '@tanstack/react-table';
 import buildQuery, { Filter } from 'odata-query';
 import { idMerge } from 'functional-object-array-merge';
 import { buildColumns, buildExpand, buildHidden, buildPaging, buildSelect, buildSort, defaultTableState, getAllProps } from './oDataFunctions';
+import { requiredUrl } from './utils';
 
 export interface UseODataSourceOptions {
     baseAddress: string,
     entityType: string,
-    metadataUrl?: string,
-    includeNavigation?: boolean,
-    selectAll?: boolean,
-    initialState?: Partial<TableState>,
+    includeNavigation: boolean,
+    metadata: ODataMetadata,
+    selectAll: boolean,
+    initialState: Partial<TableState>,
     filterMapFn: (filter: ColumnFilter) => Filter | undefined,
-    fetchFn?: <T>(url: string) => Promise<T>,
-    queryOptions?: Omit<UseQueryOptions<any, unknown, any, any>, 'queryKey' | 'queryFn' | 'initialData'> & {
-        initialData?: () => undefined;
-    },
-    queryKey?: string[],
+    fetchFn: <T>(url: string) => Promise<T>,
+    queryOptions: Omit<UseSuspenseQueryOptions<any, unknown, any, any>, 'queryKey' | 'queryFn' >,
+    queryKey: string[],
     columnFn: (property: ProcessedProperty) => ColumnDef<any>,
-    customColumns?: Partial<ColumnDef<any>>[],
-    useMetadataQuery: (url?: string) => UseQueryResult<ODataMetadata, unknown>
+    customColumns: Partial<ColumnDef<any>>[],
 }
 
 export interface ODataSourceMeta {
     baseAddress: string;
-    metadataQuery: UseQueryResult<ODataMetadata>;
-    isLoading: boolean,
-    isFetching: boolean,
     total: number,
     queryString: string
     boundQueryKey: string[],
-    typeRoot?: ProcessedEntityType,
-    defaultOrder: string[]
+    typeRoot: ProcessedEntityType,
+    defaultOrder: string[],
 }
 
 export interface ODataSource {
     data: any[],
     state: Partial<TableState>,
-    setState: any,
-    onStateChange: any,
-    columns: ColumnDef<any>[],
+    setState: React.Dispatch<React.SetStateAction<TableState>>,
+    onStateChange: React.Dispatch<React.SetStateAction<TableState>>,
+    columns: ColumnDef<any, unknown>[],
     pageCount: number,
     meta: ODataSourceMeta
 }
 
+export interface ProcessedMetadata {
+    root: ProcessedEntityType,
+    columns: ColumnDef<any>[],
+    defaultOrder: string[]
+}
+
 const useODataSource : (options: UseODataSourceOptions) => ODataSource = ({
     baseAddress, 
-    entityType, 
-    metadataUrl, 
-    includeNavigation = true,
-    selectAll = false,
-    fetchFn = (url: string) => fetch(url).then(r => r.json()), 
-    queryKey = ['ODATA'],
-    queryOptions = {
-		keepPreviousData: true,
-		staleTime: 300000,
-		suspense: true,
-	},
-    initialState = {},
+    entityType,
+    metadata,
+    includeNavigation,
+    selectAll,
+    fetchFn, 
+    queryKey,
+    queryOptions,
+    initialState,
     columnFn,
     filterMapFn,
-    customColumns = [],
-    useMetadataQuery
+    customColumns,
 }: UseODataSourceOptions) => {
     const [tableState, setTableState] = React.useState<TableState>({...defaultTableState, ...initialState});
-    const [total, setTotal] = React.useState(0);
-	const [pageCount, setPageCount] = React.useState(-1);
-    const [columns, setColumns] = React.useState<ColumnDef<any>[]>([]);
-    const [defaultOrder, setDefaultOrder] = React.useState<string[]>([]);
-    const [validMetadataUrl, setValidMetadataUrl] = React.useState(metadataUrl);
-    const [typeRoot, setTypeRoot] = React.useState<ProcessedEntityType>();
 
     const { pagination: { pageSize} } = tableState
-
     const boundQueryKey = concat(queryKey, [baseAddress, entityType]);
-    // we have the type root and table state, time to query
-    const readyToQuery = !isNil(typeRoot) && !isEmpty(tableState);
-    //will only query if metadata url is set
-    const metadataQuery = useMetadataQuery(validMetadataUrl);
     // calculate filters up front
     const filters = { filter: map(filterMapFn, tableState.columnFilters) };
 
-    // effects
-    // updated page count when the page size changes
-	React.useEffect(() => {
-		setPageCount(Math.ceil(total / pageSize));
-	}, [pageSize]);
-
-    // check if we can set the type root
-    React.useEffect(() => {
-        if (!isNil(metadataQuery.data && isNil(typeRoot))) {
-            const root = buildTypeRoot(metadataQuery.data!)(entityType);
-			setTypeRoot(root);
+    const processed = useSuspenseQuery<ProcessedMetadata, unknown>({
+        queryKey: append('TYPEROOT', boundQueryKey),
+        queryFn: () => new Promise((resolve) => {
+            const root = buildTypeRoot(metadata)(entityType);
             const builtColumns = buildColumns(includeNavigation, columnFn)(root);
-            const combined = idMerge(concat(builtColumns, customColumns));
-            // typescript doesn't like the fact that these are partial objects
-            // @ts-ignore
-            setColumns(combined);
-            // idMerge changes the default order of columns
-            setDefaultOrder(map<ColumnDef<any>, any>(prop('id'), builtColumns ));
-        }
-    }, [metadataQuery.data]);
-
-    //will only query when metadata url is not set and then will set metadata url
-	const discoveryKey = append('?$top=0', boundQueryKey);
-    const discovery = useQuery<ODataServiceDocument<any>, unknown>(
-		discoveryKey,
-		() => fetchFn(`${baseAddress}?$top=0`),
-		{
-            //...queryOptions,
-			enabled: isNil(validMetadataUrl),
-			onSuccess: (data) => {
-				if (validMetadataUrl !== data['@odata.context']) {
-					setValidMetadataUrl(data['@odata.context']);
-				}
-			},
-		},
-	);
+            const columns = idMerge(concat(builtColumns, customColumns));
+            const defaultOrder = map<ColumnDef<any>, any>(prop('id'), builtColumns );
+            // ts hates the merge for columns
+            //@ts-ignore
+            return resolve({ root, columns, defaultOrder });
+        }),
+    })
 
     // count query - we run this separate from the main query, changes with filter change
     const countKey = append(JSON.stringify(filters), boundQueryKey);
-    const countQuery = useQuery<ODataServiceDocument<any>, unknown>(countKey, 
-        () => fetchFn<ODataServiceDocument<any>>(`${baseAddress}${buildQuery(mergeAll([filters, { count: true, top: 0 }]))}`), {
+    const countQuery = useSuspenseQuery<ODataServiceDocument<any>, unknown>({ queryKey: countKey, 
+        queryFn: () => requiredUrl(baseAddress)
+            .then(u => `${u}${buildQuery(mergeAll([filters, { count: true, top: 0 }]))}`)
+            .then<ODataServiceDocument<any>>(fetchFn),
 			...queryOptions,
-			enabled: readyToQuery,
 		});
-    // update total with count update
-    React.useEffect(() => {
-        if (!isNil(countQuery.data?.['@odata.count'])) {
-            const t = Number(countQuery.data?.['@odata.count']);
-            if (t !== total) {
-                setTotal(t);
-                setPageCount(Math.ceil(t / pageSize));
-            }
-        }
-    }, [countQuery.data?.['@odata.count']]);
+
+    const total = countQuery.data['@odata.count'];
+    const pageCount = Math.ceil(total / pageSize);
 
     // memo the select
     const select = React.useMemo(() => {
         if (selectAll) return {};
-        if (!readyToQuery) return {};
         // determine if we are selecting all
-        const allProps = getAllProps(typeRoot);
+        const allProps = getAllProps(processed.data.root);
         const selected = buildSelect(buildHidden(tableState.columnVisibility), allProps); 
         return selected.length !== allProps.length ? { select: selected } : {};
     }, 
-    [selectAll, tableState.columnVisibility, readyToQuery])
-
+    [selectAll, tableState.columnVisibility, processed.data])
         
 
     // memo the expand
     const expand = React.useMemo(() => {
-        // early exit, no navigations
         if (!includeNavigation) return { expand: {}};
-        return readyToQuery 
-            ? reduce<any, any>(mergeDeepLeft, {}, map(buildExpand(buildHidden(tableState.columnVisibility)), typeRoot?.navigationProperty))
-            : {};
-    }, [includeNavigation, tableState.columnVisibility, readyToQuery]);
+        return reduce<any, any>(mergeDeepLeft, {}, map(buildExpand(buildHidden(tableState.columnVisibility)), processed.data.root.navigationProperty))
+    }, [includeNavigation, tableState.columnVisibility, processed.data]);
 
     const merged = mergeAll([filters, expand, select, buildSort(tableState.sorting), buildPaging(tableState.pagination)]);
     const queryString = buildQuery(merged);
 
     // THE query that gets the data
 	const odataKey = append(queryString, boundQueryKey);
-	const query = useQuery<ODataServiceDocument<any>, unknown, ODataServiceDocument<any>, any[]>(
-		odataKey,
-		() => fetchFn(`${baseAddress}${queryString}`),
-		{
-			...queryOptions,
-			enabled: readyToQuery,
-		},
-	);
-
-    const isLoading = metadataQuery.isLoading || discovery.isLoading || countQuery.isLoading || query.isLoading;
-    const isFetching = metadataQuery.isFetching || discovery.isFetching || countQuery.isFetching || query.isFetching;
+	const query = useSuspenseQuery<ODataServiceDocument<any>, unknown, ODataServiceDocument<any>, any[]>({
+		queryKey: odataKey,
+        queryFn: () => requiredUrl(baseAddress)
+            .then(u => `${u}${queryString}`) 
+            .then<ODataServiceDocument<any>>(fetchFn),
+        ...queryOptions,
+    });
 
     const onStateChange = setTableState;
 
     return {
-        data: isNil(query.data) ? [] : query.data!.value,
+        data: query.data.value,
         state: tableState,
         setState: setTableState,
         onStateChange,
-        columns,
+        columns: processed.data.columns,
         pageCount,
         meta: {
             baseAddress,
-			metadataQuery,
-			isLoading,
-			isFetching,
 			total,
 			queryString,
 			boundQueryKey,
-			typeRoot,
-            defaultOrder,
+			typeRoot: processed.data.root,
+            defaultOrder: processed.data.defaultOrder,
 		},
     }
 }

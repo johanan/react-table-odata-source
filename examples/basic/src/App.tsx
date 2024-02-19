@@ -1,45 +1,52 @@
 import { ODataMetadata } from 'odata-metadata-processor';
 import React from 'react'
-//import { useMetadataQuery } from 'react-table-odata-source';
 import { metadataParser } from 'ts-odatajs/lib/odata/metadata';
-import { useODataSource, bindMetadataQuery, columnFn, simpleFilterFn } from '../../../src';
+import { bindMetadataQuery, bindDiscoverQuery, bindODataSource } from '../../../src';
 import { ReactTableProvider } from "react-table-provider";
 import { getCoreRowModel
     } from "@tanstack/react-table";
 import { Debug } from './Debug';
 import { Table, Pagination, ColumnHiding } from '../../../tests/TanTable';
 import { ODataContainsFilter } from './Filters';
-
-const parseFn = (xml: string) => metadataParser(null, xml) as ODataMetadata;
-const useMetadataQuery = bindMetadataQuery({ parseFn });
-function formatMoney(number) {
-    return number.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-  }
+import { useIsFetching } from '@tanstack/react-query';
+import './overlay.css';
 
 const customColumns = [
     { id: 'Price', cell: ({ getValue }) => getValue() ? formatMoney(getValue()) : null},
     { id: 'Description', filter: ODataContainsFilter, enableColumnFilter: true }
 ]
+const parseFn = (xml: string) => metadataParser(null, xml) as ODataMetadata;
+const useMetadataQuery = bindMetadataQuery({ parseFn });
+const useDiscovery = bindDiscoverQuery();
+const useOdata = bindODataSource();
+function formatMoney(number) {
+    return number.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  }
 
 const App = () => {
-    const odata = useODataSource({
+    const [isPending, startTransition] = React.useTransition();
+    const fetching = useIsFetching();
+    const metadatUrl = useDiscovery('https://services.odata.org/V4/OData/OData.svc/Products');
+    const metadata = useMetadataQuery(metadatUrl);
+    const odata = useOdata({
         baseAddress: 'https://services.odata.org/V4/OData/OData.svc/Products',
         entityType: 'ODataDemo.Product',
-        useMetadataQuery, 
-        columnFn,
-        filterMapFn: simpleFilterFn,
+        metadata: metadata.data,
         customColumns,
-        includeNavigation: true,
-        selectAll: false
     })
-    
+
+    const nonUrgentOnChange = e => {
+        startTransition(() => {
+            odata.onStateChange(e);
+        });
+    }
 
     return (<div>
         <ReactTableProvider 
             data={odata.data}
             columns={odata.columns}
             state={odata.state}
-            onStateChange={odata.onStateChange}
+            onStateChange={nonUrgentOnChange}
             pageCount={odata.pageCount}
             meta={odata.meta}
             getCoreRowModel={getCoreRowModel()}
@@ -50,9 +57,12 @@ const App = () => {
         >
             <div>Table</div>
             <ColumnHiding />
-            <Table />
+            <div className='table-container'>
+                <Table />
+                {isPending ? <div className='overlay'>Loading...</div> : null}
+            </div>
             <Pagination />
-            { odata.meta.isFetching ? 'Loading...' : null }
+            { fetching ? 'Loading...' : null }
             <Debug />
         </ReactTableProvider>
         <pre>{odata.meta.queryString}</pre>
