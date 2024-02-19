@@ -1,7 +1,7 @@
 import { ODataMetadata } from 'odata-metadata-processor';
 import React from 'react'
 import { metadataParser } from 'ts-odatajs/lib/odata/metadata';
-import { useODataSource, bindMetadataQuery, columnFn, simpleFilterFn, jsonFetchFn, bindDiscoverQuery, bindODataSource } from '../../../src';
+import { bindMetadataQuery, bindDiscoverQuery, bindODataSource } from '../../../src';
 import { ReactTableProvider } from "react-table-provider";
 import { getCoreRowModel
     } from "@tanstack/react-table";
